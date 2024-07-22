@@ -10,6 +10,11 @@
 #include <vector>
 #include <string>
 
+void advance(int kr, int kf, std::vector<std::string>& moves) {
+    if(kr >= 0 && kr <= 7 && kf >= 0 && kf <= 7)
+        moves.push_back({ static_cast<char>(kf) + 'a', static_cast<char>(kr) + '1' });
+}
+
 // knight_moves()
 // Summary: This function receives a string with the location of a knight in a chessboard and returns a vector of strings with the possible locations it might move to.
 // Arguments:
@@ -19,6 +24,17 @@ std::vector<std::string> knight_moves(std::string knight){
     std::vector<std::string> moves;
 
     // Write your code here
+    int kr = knight[1] - '1';
+    int kf = knight[0] - 'a';
+
+    advance(kr + 1, kf + 2, moves);
+    advance(kr + 2, kf + 1, moves);
+    advance(kr + 1, kf - 2, moves);
+    advance(kr + 2, kf - 1, moves);
+    advance(kr - 1, kf - 2, moves);
+    advance(kr - 2, kf - 1, moves);
+    advance(kr - 1, kf + 2, moves);
+    advance(kr - 2, kf + 1, moves);
 
     return moves;
 }
