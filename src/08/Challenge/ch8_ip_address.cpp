@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <sstream>
 
 // is_valid_ip()
 // Summary: This function validates an IP address.
@@ -16,10 +17,30 @@
 //           ip: The string to analyze with a potential ip address.
 // Returns: A boolean value. True for valid ip addresses, false otherwise.
 bool is_valid_ip(std::string ip){
+    std::stringstream ss[4];
 
-    // Write your code here
+    size_t slen = ip.length();
+    int iss = 0;
+    for(size_t i = 0; i < slen; ++i) {
+        char c = ip[i];
+        if(c == '.') {
+            if(iss > 3) return false;
+            iss++;
+        }
+        else if(c < '0' || c > '9')
+            return false;
+        else
+            ss[iss] << c;
+    }
 
-    return false;
+    for(int i = 0; i < 4; ++i) {
+        std::string s = ss[i].str();
+        if(s.length() == 0) return false;
+        int iaddr = std::atoi(s.c_str());
+        if(iaddr < 0 || iaddr > 255) return false;
+    }
+
+    return true;
 }
 
 // Main function
