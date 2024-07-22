@@ -2,3 +2,8 @@
 node_modules
 .tmp
 npm-debug.log
+src/05/Solution/ch5_factorial_seq
+src/06/Challenge/ch6_horseplay
+src/07/Challenge/ch7_complex
+src/07/Challenge/complex_num
+src/08/Challenge/ch8_ip_address
