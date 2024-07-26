@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 // ask_for_move()
 // Summary: This function asks the user to make a move.
@@ -34,16 +35,228 @@ void ask_for_move(char game[][3], char mark){
 //           mark: The AI's mark: 'X' or 'O'.
 // Returns: Nothing.
 
-#define TWO_PLAYERS
+int win_index(char a, char b, char c, char mark) {
+    char arr[] = { a, b, c };
+
+    int nmark = 0;
+    int ispace = -1;
+    for(int i = 0; i < 3; ++i){
+        if(arr[i] == ' ') {
+            ispace = i;
+        }
+        else if(arr[i] == mark)
+            nmark++;
+        else
+            return -1;
+    }
+
+    if(nmark == 2) return ispace;
+    return -1;
+}
+
+bool winning_row(char game[][3], char mark, int i) {
+    int nmatch = 0, iempty = -1;
+    for(int icol = 0; icol < 3; ++icol) {
+        char c = game[i][icol];
+        if(c == mark) nmatch++;
+        if(c == ' ') iempty = icol;
+    }
+
+    if(nmatch == 2) {
+        if(iempty != -1) {
+            game[i][iempty] = mark;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool winning_col(char game[][3], char mark, int i) {
+    int nmatch = 0, iempty = -1;
+    for(int irow = 0; irow < 3; ++irow) {
+        char c = game[irow][i];
+        if(c == mark) nmatch++;
+        if(c == ' ') iempty = irow;
+    }
+
+    if(nmatch == 2) {
+        if(iempty != -1) {
+            game[iempty][i] = mark;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool make_winning_move(char game[][3], char mark) {
+    for(int i = 0; i < 3; ++i) {
+        if(winning_row(game, mark, i))
+            return true;
+
+        if(winning_col(game, mark, i))
+            return true;
+
+        int wtlbr = win_index(game[0][0], game[1][1], game[2][2], mark);
+        switch(wtlbr) {
+            case 0:
+            game[0][0] = mark; return true;
+            case 1:
+            game[1][1] = mark; return true;
+            case 2:
+            game[2][2] = mark; return true;
+            case -1:
+                break;
+            default:
+                std::cout << __LINE__ << " computer or programmer has gone mad" << std::endl;
+        }
+
+        int wtrbl = win_index(game[0][2], game[1][1], game[2][0], mark);
+        switch(wtrbl) {
+            case 0:
+            game[0][2] = mark; return true;
+            case 1:
+            game[1][1] = mark; return true;
+            case 2:
+            game[2][0] = mark; return true;
+            case -1:
+                break;
+            default:
+                std::cout << __LINE__ << " computer or programmer has gone mad" << std::endl;
+
+        }
+    }
+
+    return false;
+}
+
+int moves_to_win(char a, char b, char c, char mark) {
+    int nmoves = 3;
+    if(a == mark) nmoves--;
+    else if(a != ' ') return -1;
+
+    if(b == mark) nmoves--;
+    else if(b != ' ') return -1;
+
+    if(c == mark) nmoves--;
+    else if(c != ' ') return -1;
+
+    return nmoves;
+}
+
+// #define TWO_PLAYERS
 void make_move(char game[][3], char mark){ 
     #ifdef TWO_PLAYERS
     ask_for_move(game,mark);
     #else
-    
-    // Write your code here and comment out the definition of TWO_PLAYERS above
 
+    /*
+
+    if ai has a winning move in this turn, make that move
+    if opp has a winning move in next turn, make that move
+    
+    otherwise, find the streak in which opp needs least no
+    of turns to win hijack it
+y
+    */
+   
+   if(make_winning_move(game, mark)) return;
+
+    //  for each streak, count how many turns user needs to win
+    //  hijack the one with the least
+
+    const int streaks[8][3][2] = {
+        { {0,0}, {0,1}, {0,2} },
+        { {1,0}, {1,1}, {1,2} },
+        { {2,0}, {2,1}, {2,2} },
+        { {0,0}, {1,0}, {2,0} },
+        { {0,1}, {1,1}, {2,1} },
+        { {0,2}, {1,2}, {2,2} },
+        { {0,0}, {1,1}, {2,2} },
+        { {0,2}, {1,1}, {2,0} }
+    };
+
+    std::vector<int> sblocked, s0, s1, s2, s3;
+    char user_mark = (mark == 'O') ? 'X' : 'O';
+    for(int istr = 0; istr < 8; ++istr) {
+        auto& str1 = streaks[istr];
+        int nmoves = moves_to_win(game[str1[0][0]][str1[0][1]],
+            game[str1[1][0]][str1[1][1]], game[str1[2][0]][str1[2][1]], user_mark);
+
+        switch(nmoves) {
+            case -1:
+                sblocked.push_back(istr); continue;
+            case 1:
+                s1.push_back(istr); continue;
+            case 2:
+                s2.push_back(istr); continue;
+            case 3:
+                s3.push_back(istr); continue;
+            default:
+                std::cout << __LINE__ << " computer or programmer has gone mad" << std::endl;
+
+                return;
+        }
+        
+    }
+
+    if(s1.size() > 0) {
+    //  there exists an opp streak with just one move pending
+    //  hijack it
+        auto& str1 = streaks[s1[0]];
+        { char& c = game[str1[0][0]][str1[0][1]];
+        if(c == ' '){ c = mark; return; } }
+        { char& c = game[str1[1][0]][str1[1][1]];
+        if(c == ' '){ c = mark; return; } }
+        { char& c = game[str1[2][0]][str1[2][1]];
+        if(c == ' '){ c = mark; return; } }
+
+    }
+    else if(s3.size() == 8){ game[1][1] = mark; return; }   //  empty board; take center
+    else if(s2.size() > 0) {    // streaks with one opp mark and rest empty
+        auto& str1 = streaks[s2[0]];
+        for(int i = 0; i < 3; ++i) {
+            if(game[str1[i][0]][str1[i][1]] == ' ') {
+                game[str1[i][0]][str1[i][1]] = mark; return;
+            }
+        }
+    }
+    else {
+        for(int i = 0; i < 3; ++i) {
+            for(int j = 0; j < 3; ++j) {
+                if(game[i][j] == ' '){ game[i][j] = mark; return; }
+            }
+        }
+    }
     #endif
     return;
+}
+
+bool active(char game[][3]) {
+    for(int i = 0; i < 3; ++i)
+        for(int j = 0; j < 3; ++j)
+            if(game[i][j] == ' ') return true;
+
+    return false;
+}
+
+bool row_win(char game[][3], int row) {
+    if(game[row][0] == ' ') return false;
+    return (game[row][0] == game[row][1] && game[row][1] == game[row][2]);
+
+}
+
+bool col_win(char game[][3], int col) {
+    if(game[0][col] == ' ') return false;
+    return (game[0][col] == game[1][col] && game[1][col] == game[2][col]);
+
+}
+
+bool diag_win(char game[][3]){
+    if(game[1][1] == ' ') return false;
+    return ((game[0][0] == game[1][1] && game[1][1] == game[2][2]) || 
+        (game[1][1] == game[0][2] && game[1][1] == game[2][0]));
 }
 
 // game_state()
@@ -57,9 +270,17 @@ void make_move(char game[][3], char mark){
 //                                  't': A tie.
 char game_state(char game[][3]){
 
-    // Write your code here
+    if(diag_win(game))
+        return game[1][1];
 
-    return 'a';
+    for(int i = 0; i < 3; ++i)
+        if(row_win(game, i))
+            return game[i][0];
+        else if(col_win(game, i)) {
+            return game[0][i];
+        }
+
+    return active(game) ? 'a' : 't';
 }
 
 // print_game()
